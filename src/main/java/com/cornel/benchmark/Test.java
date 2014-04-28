@@ -23,10 +23,11 @@ public class Test {
         benchmarkMySql.init("jdbc:mysql://localhost:3306/test?user=root&password=root");
         benchmarkMySql.createTables();
         benchmarkMySql.deleteRows();
-        System.out.println(benchmarkMySql.insertRows());
-        System.out.println(benchmarkMySql.insertBulkRows());
-        System.out.println(benchmarkMySql.insertRowsMultiValue());
-
+        for (int i = 0; i < 10; i++) {
+            System.out.println(benchmarkMySql.insertRows());
+            System.out.println(benchmarkMySql.insertBulkRows());
+            System.out.println(benchmarkMySql.insertRowsMultiValue());
+        }
 //        System.out.println(benchmarkMySql.updateBulkRows());
 //        benchmarkMySql.cleanData();
         benchmarkMySql.destroy();
