@@ -7,10 +7,55 @@ import java.sql.Statement;
 
 public abstract class SqlBenchmark implements Benchmark{
 
-    public static final int COMMIT_SIZE = 1000;
+    public static final int COMMIT_SIZE = 10000;
     public static final int NO = 10;
 
     protected Connection connection;
+
+
+    @Override
+    public long insertRowsMultiValue() throws SQLException {
+        long t1 = System.currentTimeMillis();
+        int counter = 0;
+        try (Statement st = connection.createStatement()) {
+            for (int i = 0; i < NO; i++) {
+                StringBuilder sb = new StringBuilder(110000);
+                sb.append("insert into company(name,noReg,address,salary) values");
+                for (int j = 0; j < COMMIT_SIZE; j++) {
+                    sb.append("('cornel creanga',");
+                    sb.append(++counter);
+                    sb.append(",'Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament ");
+                    sb.append(counter).append("'");
+                    sb.append(",45.25),");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                sb.append(';');
+                st.execute(sb.toString());
+                connection.commit();
+            }
+        }
+        return System.currentTimeMillis() - t1;
+    }
+
+    @Override
+    public long insertRows() throws SQLException {
+        long t1 = System.currentTimeMillis();
+        int counter = 0;
+        try (Statement st = connection.createStatement()) {
+            for (int i = 0; i < NO; i++) {
+                for (int j = 0; j < COMMIT_SIZE; j++) {
+                    String s = "insert into company(name,noReg,address,salary) values('cornel creanga',"+
+                            (++counter)+
+                            ",'Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament "+
+                            counter+
+                            "',45.25)";
+                    st.execute(s);
+                }
+                connection.commit();
+            }
+        }
+        return System.currentTimeMillis() - t1;
+    }
 
     @Override
     public long insertBulkRows() throws SQLException {
@@ -20,8 +65,8 @@ public abstract class SqlBenchmark implements Benchmark{
             for (int i = 0; i < NO; i++) {
                 for (int j = 0; j < COMMIT_SIZE; j++) {
                     ps.setString(1, "cornel creanga");
-                    ps.setInt(2, counter++);
-                    ps.setString(3, "Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament "+j);
+                    ps.setInt(2, ++counter);
+                    ps.setString(3, "Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament "+counter);
                     ps.setDouble(4, 45.25);
                     ps.addBatch();
                 }

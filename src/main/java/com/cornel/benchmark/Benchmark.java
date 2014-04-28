@@ -7,6 +7,10 @@ public interface Benchmark {
 
     void createTables() throws SQLException;
 
+    long insertRowsMultiValue() throws SQLException;
+
+    long insertRows() throws SQLException;
+
     long insertBulkRows() throws SQLException;
 
     long deleteRows() throws SQLException;

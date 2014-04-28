@@ -19,6 +19,9 @@ public class MySqlBenchmark extends SqlBenchmark{
         }
     }
 
+
+
+
     @Override
     public void cleanData() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
