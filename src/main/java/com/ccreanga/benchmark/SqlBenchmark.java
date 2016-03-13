@@ -1,4 +1,4 @@
-package com.cornel.benchmark;
+package com.ccreanga.benchmark;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +22,7 @@ public abstract class SqlBenchmark implements Benchmark{
                 StringBuilder sb = new StringBuilder(110000);
                 sb.append("insert into company(name,noReg,address,salary) values");
                 for (int j = 0; j < COMMIT_SIZE; j++) {
-                    sb.append("('cornel creanga',");
+                    sb.append("('ccreanga cucu',");
                     sb.append(++counter);
                     sb.append(",'Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament ");
                     sb.append(counter).append("'");
@@ -44,7 +44,7 @@ public abstract class SqlBenchmark implements Benchmark{
         try (Statement st = connection.createStatement()) {
             for (int i = 0; i < NO; i++) {
                 for (int j = 0; j < COMMIT_SIZE; j++) {
-                    String s = "insert into company(name,noReg,address,salary) values('cornel creanga',"+
+                    String s = "insert into company(name,noReg,address,salary) values('cornel cucu',"+
                             (++counter)+
                             ",'Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament "+
                             counter+
@@ -64,7 +64,7 @@ public abstract class SqlBenchmark implements Benchmark{
         try (PreparedStatement ps = connection.prepareStatement("insert into company(name,noReg,address,salary) values(?,?,?,?)")) {
             for (int i = 0; i < NO; i++) {
                 for (int j = 0; j < COMMIT_SIZE; j++) {
-                    ps.setString(1, "cornel creanga");
+                    ps.setString(1, "ccreanga cucu");
                     ps.setInt(2, ++counter);
                     ps.setString(3, "Bucuresti, Sector 6, Aleea Lunca Siretului Bloc 42 scara 1a apartament "+counter);
                     ps.setDouble(4, 45.25);

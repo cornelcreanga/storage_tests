@@ -1,4 +1,4 @@
-package com.cornel;
+package com.ccreanga;
 
 public class Loader {
 }

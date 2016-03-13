@@ -1,4 +1,4 @@
-package com.cornel.isolation;
+package com.ccreanga.isolation;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

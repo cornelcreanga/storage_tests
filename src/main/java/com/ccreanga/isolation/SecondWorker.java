@@ -1,23 +1,21 @@
-package com.cornel.isolation;
+package com.ccreanga.isolation;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.Statement;
 
-public class FirstWorker implements Runnable {
+public class SecondWorker implements Runnable {
 
     Connection connection;
 
-    public FirstWorker(Connection connection) {
+    public SecondWorker(Connection connection) {
         this.connection = connection;
     }
 
     public void process() throws Exception {
         System.out.println("start write:"+Thread.currentThread().getId());
         try (Statement stmt = connection.createStatement()) {
-            String sql = "update company set name=\"xxx\" where noReg>305000";
+            String sql = "insert into company(name,noReg,address,salary) values('wewewe',305050,'123412341241',313)";
             stmt.executeUpdate(sql);
-            Thread.sleep(5000);
             connection.commit();
         }
         System.out.println("end write:"+Thread.currentThread().getId());

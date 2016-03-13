@@ -1,4 +1,4 @@
-package com.cornel.benchmark;
+package com.ccreanga.benchmark;
 
 /**
  19825

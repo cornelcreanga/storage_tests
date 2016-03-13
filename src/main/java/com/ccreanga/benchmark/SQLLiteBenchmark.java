@@ -1,25 +1,20 @@
-package com.cornel.benchmark;
-
-
-
-import org.apache.commons.io.IOUtils;
+package com.ccreanga.benchmark;
 
 import java.sql.*;
 
-public class MySqlBenchmark extends SqlBenchmark{
+public class SQLLiteBenchmark extends SqlBenchmark {
 
 
     @Override
     public void createTables() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            String sql = "create table if not exists company (id int NOT NULL AUTO_INCREMENT,name varchar(256) not null,noReg int not null,address varchar(512),salary double, PRIMARY KEY (id), index noReg_idx (noReg) ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            String sql =  "create table if not exists company(id integer primary key autoincrement not null,name text not null,noReg int not null,address text,salary real)";
+            stmt.executeUpdate(sql);
+            sql="create index if not exists  noReg_idx ON company(noReg)";
             stmt.executeUpdate(sql);
             connection.commit();
-
         }
     }
-
-
 
 
     @Override
@@ -33,10 +28,9 @@ public class MySqlBenchmark extends SqlBenchmark{
 
     @Override
     public void init(String url) throws Exception {
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("org.sqlite.JDBC");
         connection = DriverManager.getConnection(url);
         connection.setAutoCommit(false);
-                //"jdbc:mysql://localhost/feedback?user=sqluser&password=sqluserpw";
     }
 
 }

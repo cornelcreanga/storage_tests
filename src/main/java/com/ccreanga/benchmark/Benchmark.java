@@ -1,4 +1,4 @@
-package com.cornel.benchmark;
+package com.ccreanga.benchmark;
 
 
 import java.sql.SQLException;
