@@ -1,10 +1,29 @@
 package com.ccreanga;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Random;
 
-public class RandomStringUtils {
+public class RandomUtils {
 
     private static final Random RANDOM = new Random();
+
+    public static long randomDate(int daysNegDeviation, int daysPosDeviation){
+
+        Calendar calendar = GregorianCalendar.getInstance();
+        int sum = 0;
+        if (daysNegDeviation!=0)
+            sum+=RANDOM.nextInt(Math.abs(daysNegDeviation))*((int)Math.signum(daysNegDeviation));
+        if (daysPosDeviation!=0)
+            sum+=RANDOM.nextInt(Math.abs(daysPosDeviation))*((int)Math.signum(daysPosDeviation));
+
+        calendar.add(Calendar.DAY_OF_YEAR, sum);
+        return calendar.getTimeInMillis();
+    }
+
+    public static long randomLong(long min, long max){
+        return (long) (min + (max - min) * RANDOM.nextDouble());//todo - prevent overflow
+    }
 
     public static String randomAlphabetic(final int count) {
         return random(count, 0, 0, true, false, null, RANDOM);
