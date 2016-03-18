@@ -1,12 +1,72 @@
 package com.ccreanga;
 
+import com.mongodb.*;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.WriteModel;
+import org.bson.Document;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Loader {
+
+    public static void prepareMongoDb(MongoDatabase db, int rows){
+        MongoCollection<Document> collection = db.getCollection("ld2");
+
+        collection.deleteMany(new Document());
+
+        Random random = new Random();
+        List<WriteModel<Document>> list = new ArrayList<>(500);
+        int counter = 1;
+        long t1 = System.currentTimeMillis(), t2,start=t1;
+        for (int k = 0; k < rows; k++) {
+            String firstName = RandomUtils.randomAlphabetic(15);
+            String lastName = RandomUtils.randomAlphabetic(15);
+
+            Document document = new Document()
+                    .append("lead_id",k)
+                    .append("salutation","Herr")
+                    .append("firstName",firstName)
+                    .append("lastName",lastName)
+                    .append("street",RandomUtils.randomAlphabetic(15))
+                    .append("streetNumber",RandomUtils.randomAlphabetic(3))
+                    .append("zipCode", RandomUtils.random(7,0,0,true,false,new char[]{'A','B','C','D','E','F'},random))
+                    .append("city",RandomUtils.random(15,0,0,true,false,new char[]{'A','B','C','D'},random))
+                    .append("country","AT")
+                    .append("agbAccepted",true)
+                    .append("email",firstName+"."+lastName+"@fer.at")
+                    .append("campaignURL","ABCDEFGH"+ RandomUtils.randomLong(0,100))
+                    .append("newsletterAccepted",RandomUtils.randomLong(0,4)==1)
+                    .append("birthDay",new Date(RandomUtils.randomDate(-70*365,-18*365)))
+                    .append("source","Source")
+                    .append("singleOptInDate",new Timestamp(RandomUtils.randomDate(-365,0)))
+                    .append("singleOptInIp","10.124."+ RandomUtils.randomLong(0,255)+"."+ RandomUtils.randomLong(0,255))
+                    .append("formCaptchaValue",RandomUtils.randomAlphabetic(7))
+                    .append("expectedCaptcha",RandomUtils.randomAlphabetic(7))
+                    .append("answer",RandomUtils.randomAlphabetic(7))
+                    .append("winningPoints",(int) RandomUtils.randomLong(0,100));
+            list.add(new InsertOneModel(document));
+            if (counter % 10000 == 0){
+                collection.withWriteConcern(WriteConcern.FSYNCED).bulkWrite(list,new BulkWriteOptions().ordered(false));
+                list= new ArrayList();
+                t2 = System.currentTimeMillis();
+                System.out.println("inserted 10k in:" + (t2 - t1));
+                t1 = t2;
+            }
+            counter++;
+        }
+        if (!list.isEmpty())
+            collection.withWriteConcern(WriteConcern.JOURNALED).bulkWrite(list,new BulkWriteOptions().ordered(false));
+        System.out.printf("inserted %s rows in %s\n",rows ,System.currentTimeMillis()-start);
+    }
 
     public static void preparePostgreSqlTable(Connection connection, int rows) throws SQLException {
 
@@ -80,7 +140,12 @@ public class Loader {
                 String.format("jdbc:postgresql://%s/%s?user=%s&password=%s","localhost:5432","test","test","test"));
         connection.setAutoCommit(false);
         preparePostgreSqlTable(connection,1000*1000);
-        connection.close();
+        connection.close();//126648
 
+        MongoCredential credential = MongoCredential.createCredential("test", "local", "test".toCharArray());
+        //MongoClient mongoClient = new MongoClient(new ServerAddress("localhost" , 27017), Arrays.asList(credential));
+        MongoClient mongoClient = new MongoClient(new ServerAddress("localhost" , 27017));
+        MongoDatabase mongoDatabase = mongoClient.getDatabase( "local" );
+        prepareMongoDb(mongoDatabase,1000*1000);
     }
 }
