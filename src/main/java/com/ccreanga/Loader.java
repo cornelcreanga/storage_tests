@@ -22,9 +22,9 @@ public class Loader {
         MongoCollection<Document> collection = db.getCollection("ld2");
 
         collection.deleteMany(new Document());
-
+//db.getCollection('ld2').createIndex( { firstName: 1 } ) todo -if not exists
         Random random = new Random();
-        List<WriteModel<Document>> list = new ArrayList<>(500);
+        List<WriteModel<Document>> list = new ArrayList<>(10000);
         int counter = 1;
         long t1 = System.currentTimeMillis(), t2,start=t1;
         for (int k = 0; k < rows; k++) {
@@ -53,10 +53,15 @@ public class Loader {
                     .append("expectedCaptcha",RandomUtils.randomAlphabetic(7))
                     .append("answer",RandomUtils.randomAlphabetic(7))
                     .append("winningPoints",(int) RandomUtils.randomLong(0,100));
+            insertWithProbability(document,"hobby",RandomUtils.random(10,0,0,true,false,new char[]{'A','B','C',},random),0.25d);
+            insertWithProbability(document,"team",RandomUtils.random(10,0,0,true,false,new char[]{'A','B','C',},random),0.25d);
+            insertWithProbability(document,"salary",""+RandomUtils.randomLong(200,4000),0.75d);
+            insertWithProbability(document,"kids",""+RandomUtils.randomLong(0,4),0.5d);
+
             list.add(new InsertOneModel(document));
             if (counter % 10000 == 0){
-                collection.withWriteConcern(WriteConcern.FSYNCED).bulkWrite(list,new BulkWriteOptions().ordered(false));
-                list= new ArrayList();
+                collection.withWriteConcern(WriteConcern.JOURNALED).bulkWrite(list,new BulkWriteOptions().ordered(false));
+                list= new ArrayList<>();
                 t2 = System.currentTimeMillis();
                 System.out.println("inserted 10k in:" + (t2 - t1));
                 t1 = t2;
@@ -67,6 +72,13 @@ public class Loader {
             collection.withWriteConcern(WriteConcern.JOURNALED).bulkWrite(list,new BulkWriteOptions().ordered(false));
         System.out.printf("inserted %s rows in %s\n",rows ,System.currentTimeMillis()-start);
     }
+
+    private static void insertWithProbability(Document document,String key,String value,double probability){
+        if (Math.random()>probability){
+            document.append(key,value);
+        }
+    }
+
 
     public static void preparePostgreSqlTable(Connection connection, int rows) throws SQLException {
 
@@ -139,13 +151,13 @@ public class Loader {
         Connection connection = DriverManager.getConnection(
                 String.format("jdbc:postgresql://%s/%s?user=%s&password=%s","localhost:5432","test","test","test"));
         connection.setAutoCommit(false);
-        preparePostgreSqlTable(connection,1000*1000);
+//        preparePostgreSqlTable(connection,1000*1000);
         connection.close();//126648
 
         MongoCredential credential = MongoCredential.createCredential("test", "local", "test".toCharArray());
         //MongoClient mongoClient = new MongoClient(new ServerAddress("localhost" , 27017), Arrays.asList(credential));
         MongoClient mongoClient = new MongoClient(new ServerAddress("localhost" , 27017));
         MongoDatabase mongoDatabase = mongoClient.getDatabase( "local" );
-        prepareMongoDb(mongoDatabase,1000*1000);
+        prepareMongoDb(mongoDatabase,70*1000*1000);
     }
 }
