@@ -25,6 +25,10 @@ CREATE TABLE ld2
   expectedcaptcha text,
   answer text,
   winningpoints integer,
+  hobby text,
+  team text,
+  salary integer,
+  kids integer,
   CONSTRAINT pk_lead_data2 PRIMARY KEY (id)
 )
 WITH (
