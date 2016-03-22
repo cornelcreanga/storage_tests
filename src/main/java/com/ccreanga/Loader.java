@@ -6,6 +6,9 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.WriteModel;
+import org.bson.BsonDateTime;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.bson.Document;
 
 import java.io.IOException;
@@ -18,18 +21,20 @@ import java.util.Random;
 
 public class Loader {
 
+
+    public static RandomNameGenerator randomNameGenerator;
+
     public static void prepareMongoDb(MongoDatabase db, int rows){
         MongoCollection<Document> collection = db.getCollection("ld2");
-
-        collection.deleteMany(new Document());
-//db.getCollection('ld2').createIndex( { firstName: 1 } ) todo -if not exists
+        collection.drop();
         Random random = new Random();
         List<WriteModel<Document>> list = new ArrayList<>(10000);
         int counter = 1;
-        long t1 = System.currentTimeMillis(), t2,start=t1;
+        long t1 = System.currentTimeMillis();
+        long t2,start=t1;
         for (int k = 0; k < rows; k++) {
-            String firstName = RandomUtils.randomAlphabetic(15);
-            String lastName = RandomUtils.randomAlphabetic(15);
+            String firstName = randomNameGenerator.compose(2);
+            String lastName = randomNameGenerator.compose(2);
 
             Document document = new Document()
                     .append("lead_id",k)
@@ -59,18 +64,39 @@ public class Loader {
             insertWithProbability(document,"kids",""+RandomUtils.randomLong(0,4),0.5d);
 
             list.add(new InsertOneModel(document));
-            if (counter % 10000 == 0){
+            if (counter % 100000 == 0){
                 collection.withWriteConcern(WriteConcern.JOURNALED).bulkWrite(list,new BulkWriteOptions().ordered(false));
                 list= new ArrayList<>();
                 t2 = System.currentTimeMillis();
-                System.out.println("inserted 10k in:" + (t2 - t1));
+                System.out.println("inserted 100k in:" + (t2 - t1));
                 t1 = t2;
             }
             counter++;
         }
         if (!list.isEmpty())
             collection.withWriteConcern(WriteConcern.JOURNALED).bulkWrite(list,new BulkWriteOptions().ordered(false));
+
         System.out.printf("inserted %s rows in %s\n",rows ,System.currentTimeMillis()-start);
+
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("firstName",new BsonInt32(1)));
+        System.out.println("firstName in "+(System.currentTimeMillis()-t1));
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("lastName",new BsonInt32(1)));
+        System.out.println("lastName in "+(System.currentTimeMillis()-t1));
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("singleOptInDate",new BsonInt32(1)));
+        System.out.println("singleOptInDate in "+(System.currentTimeMillis()-t1));
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("winningPoints",new BsonInt32(1)));
+        System.out.println("winningPoints in "+(System.currentTimeMillis()-t1));
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("birthDay",new BsonInt32(1)));
+        System.out.println("birthDay in "+(System.currentTimeMillis()-t1));
+        t1 = System.currentTimeMillis();
+        collection.createIndex(new BsonDocument("singleOptInIp",new BsonInt32(1)));
+        System.out.println("singleOptInIp in "+(System.currentTimeMillis()-t1));
+
     }
 
     private static void insertWithProbability(Document document,String key,String value,double probability){
@@ -103,8 +129,8 @@ public class Loader {
             for (int k = 0; k < rows; k++) {
                 ps.setInt(1,k);
                 ps.setString(2,"Herr");
-                String firstName = RandomUtils.randomAlphabetic(15);
-                String lastName = RandomUtils.randomAlphabetic(15);
+                String firstName = randomNameGenerator.compose(2);
+                String lastName = randomNameGenerator.compose(2);
 
                 ps.setString(3,firstName);
                 ps.setString(4,lastName);
@@ -131,9 +157,9 @@ public class Loader {
                     ps.executeBatch();
                 if (counter % 1000 == 0)
                     connection.commit();
-                if (counter % 10000==0) {
+                if (counter % 100000==0) {
                     t2 = System.currentTimeMillis();
-                    System.out.println("inserted 10k in:" + (t2 - t1));
+                    System.out.println("inserted 100k in:" + (t2 - t1));
                     t1 = t2;
                 }
                 counter++;
@@ -147,6 +173,9 @@ public class Loader {
     }
 
     public static void main(String[] args) throws Exception {
+
+        InputStream in = FileUtil.classPathResource("fantasy.txt");
+        randomNameGenerator = new RandomNameGenerator(in);
         Class.forName("org.postgresql.Driver");
         Connection connection = DriverManager.getConnection(
                 String.format("jdbc:postgresql://%s/%s?user=%s&password=%s","localhost:5432","test","test","test"));
